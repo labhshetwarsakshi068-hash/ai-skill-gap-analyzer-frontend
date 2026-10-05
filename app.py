@@ -447,9 +447,90 @@ elif page == "Login":
 # DASHBOARD
 # =========================================================
 
+# =========================================================
+# DASHBOARD
+# =========================================================
+
 elif page == "Dashboard":
 
-    st.title("📊 Dashboard")
+    st.markdown(
+        """
+        <style>
+        .dashboard-title {
+            font-size: 34px;
+            font-weight: 700;
+            margin-bottom: 0px;
+        }
+        .dashboard-subtitle {
+            font-size: 16px;
+            color: #6b7280;
+            margin-bottom: 25px;
+        }
+        .section-title {
+            font-size: 22px;
+            font-weight: 700;
+            margin-top: 18px;
+            margin-bottom: 12px;
+        }
+        .profile-card {
+            padding: 18px;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+            background: #ffffff;
+            min-height: 105px;
+        }
+        .profile-card-green {
+            padding: 18px;
+            border-radius: 12px;
+            border: 1px solid #bbf7d0;
+            background: #f0fdf4;
+            min-height: 105px;
+        }
+        .card-label {
+            color: #6b7280;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .card-value {
+            font-size: 15px;
+            font-weight: 600;
+        }
+        .summary-value {
+            font-size: 28px;
+            font-weight: 700;
+        }
+        .skill-current {
+            display: inline-block;
+            padding: 7px 12px;
+            margin: 4px;
+            border-radius: 20px;
+            background: #ecfdf5;
+            color: #047857;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .skill-missing {
+            display: inline-block;
+            padding: 7px 12px;
+            margin: 4px;
+            border-radius: 20px;
+            background: #fff7ed;
+            color: #c2410c;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .learning-step {
+            padding: 10px 14px;
+            margin: 7px 0;
+            border-left: 4px solid #6366f1;
+            background: #f8fafc;
+            border-radius: 6px;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
 
     user = st.session_state.user
 
@@ -460,112 +541,118 @@ elif page == "Dashboard":
     else:
 
         user_id = user.get("id")
-
         token = st.session_state.token
 
-        # Profile
-        try:
+        # =================================================
+        # PROFILE
+        # =================================================
 
-            profile_response = get_profile(
-                user_id,
-                token
-            )
+        try:
+            profile_response = get_profile(user_id, token)
 
             if profile_response.status_code == 200:
-
                 profile_data = profile_response.json()
-
-                profile = (
-                    profile_data.get("user")
-                    or profile_data
-                )
-
+                profile = profile_data.get("user") or profile_data
             else:
-
                 profile = user
-
         except Exception:
-
             profile = user
 
-        st.markdown("## 👋 Welcome!")
-
-        st.write(
-            f"Hello **{profile.get('name', 'User')}**"
+        st.markdown(
+            '<div class="dashboard-title">🎯 Skill Gap Analyzer</div>',
+            unsafe_allow_html=True
+        )
+        st.markdown(
+            '<div class="dashboard-subtitle">Student Dashboard</div>',
+            unsafe_allow_html=True
         )
 
-        st.markdown("---")
+        st.markdown(
+            f"## 👋 Welcome, {profile.get('name', 'User')}!"
+        )
 
-        # Profile information
+        st.markdown("### 👤 Profile")
 
-        col1, col2, col3 = st.columns(3)
+        education = profile.get("education", "Not Available")
+        branch = profile.get("branch", "Not Available")
+        target_role_name = profile.get("target_role", "Not Available")
+
+        col1, col2, col3, col4 = st.columns(4)
 
         with col1:
-
-            st.markdown("### 🎓 Education")
-
-            st.write(
-                profile.get(
-                    "education",
-                    "Not available"
-                )
+            st.markdown(
+                f"""
+                <div class="profile-card">
+                    <div class="card-label">🎓 Education</div>
+                    <div class="card-value">{education}</div>
+                </div>
+                """,
+                unsafe_allow_html=True
             )
 
         with col2:
-
-            st.markdown("### 💻 Branch")
-
-            st.write(
-                profile.get(
-                    "branch",
-                    "Not available"
-                )
+            st.markdown(
+                f"""
+                <div class="profile-card">
+                    <div class="card-label">💻 Branch</div>
+                    <div class="card-value">{branch}</div>
+                </div>
+                """,
+                unsafe_allow_html=True
             )
 
         with col3:
-
-            st.markdown("### 🎯 Target Role")
-
-            target_role_name = profile.get(
-                "target_role",
-                "Not available"
+            st.markdown(
+                f"""
+                <div class="profile-card">
+                    <div class="card-label">🎯 Target Role</div>
+                    <div class="card-value">{target_role_name}</div>
+                </div>
+                """,
+                unsafe_allow_html=True
             )
 
-            st.write(target_role_name)
+        with col4:
+            st.markdown(
+                """
+                <div class="profile-card-green">
+                    <div style="color:#22c55e;font-size:12px;font-weight:600;margin-bottom:8px;">
+                        🟢 Status
+                    </div>
+                    <div style="font-size:14px;font-weight:600;">
+                        Active
+                    </div>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
 
         st.markdown("---")
 
-        # Get job roles
+        # =================================================
+        # GET JOB ROLES
+        # =================================================
 
         try:
-
             roles_response = get_job_roles()
-
             roles_data = roles_response.json()
 
             if isinstance(roles_data, dict):
-
                 roles = (
                     roles_data.get("job_roles")
                     or roles_data.get("roles")
                     or roles_data.get("data")
                     or []
                 )
-
             else:
-
                 roles = roles_data
-
         except Exception:
-
             roles = []
 
         role_id = None
 
         for role in roles:
-
             if isinstance(role, dict):
-
                 role_name = (
                     role.get("role_name")
                     or role.get("name")
@@ -573,89 +660,46 @@ elif page == "Dashboard":
                 )
 
                 if role_name == target_role_name:
-
-                    role_id = (
-                        role.get("id")
-                        or role.get("role_id")
-                    )
-
+                    role_id = role.get("id") or role.get("role_id")
                     break
 
-        # User skills
+        # =================================================
+        # GET USER SKILLS
+        # =================================================
 
         try:
-
-            skills_response = get_user_skills(
-                user_id,
-                token
-            )
+            skills_response = get_user_skills(user_id, token)
 
             if skills_response.status_code == 200:
-
                 skills_data = skills_response.json()
 
                 if isinstance(skills_data, dict):
-
                     user_skills = (
                         skills_data.get("skills")
                         or skills_data.get("user_skills")
                         or skills_data.get("data")
                         or []
                     )
-
                 else:
-
                     user_skills = skills_data
-
             else:
-
                 user_skills = []
-
         except Exception:
-
             user_skills = []
 
-        st.markdown("## 🛠️ Your Current Skills")
+        # =================================================
+        # GET SKILL GAP
+        # =================================================
 
-        if user_skills:
-
-            skill_names = []
-
-            for skill in user_skills:
-
-                if isinstance(skill, dict):
-
-                    skill_name = (
-                        skill.get("skill_name")
-                        or skill.get("name")
-                        or skill.get("skill")
-                    )
-
-                    if skill_name:
-                        skill_names.append(skill_name)
-
-                elif isinstance(skill, str):
-
-                    skill_names.append(skill)
-
-            if skill_names:
-
-                st.write(
-                    ", ".join(skill_names)
-                )
-
-        else:
-
-            st.info(
-                "No skills found. Upload your resume to detect skills."
-            )
-
-        # Skill gap
+        match_percentage = 0
+        matched_skills = []
+        missing_skills = []
+        total_matched = 0
+        total_required = 0
+        total_missing = 0
 
         if role_id:
-
             try:
-
                 gap_response = get_skill_gap(
                     user_id,
                     role_id,
@@ -663,60 +707,164 @@ elif page == "Dashboard":
                 )
 
                 if gap_response.status_code == 200:
-
                     gap_data = gap_response.json()
 
-                    st.markdown("---")
-
-                    st.markdown(
-                        "## 🎯 Skill Match"
-                    )
-
                     match_percentage = gap_data.get(
-                        "match_percentage",
-                        0
+                        "match_percentage", 0
                     )
 
-                    col1, col2, col3 = st.columns(3)
+                    matched_skills = gap_data.get(
+                        "matched_skills", []
+                    ) or []
 
-                    with col1:
+                    missing_skills = gap_data.get(
+                        "missing_skills", []
+                    ) or []
 
-                        st.metric(
-                            "Match Percentage",
-                            f"{match_percentage}%"
-                        )
+                    total_matched = gap_data.get(
+                        "total_matched_skills",
+                        len(matched_skills)
+                    )
 
-                    with col2:
+                    total_required = gap_data.get(
+                        "total_required_skills",
+                        total_matched + len(missing_skills)
+                    )
 
-                        st.metric(
-                            "Matched Skills",
-                            gap_data.get(
-                                "total_matched_skills",
-                                0
-                            )
-                        )
-
-                    with col3:
-
-                        st.metric(
-                            "Required Skills",
-                            gap_data.get(
-                                "total_required_skills",
-                                0
-                            )
-                        )
+                    total_missing = len(missing_skills)
 
             except Exception:
+                pass
 
-                st.info(
-                    "Skill gap data could not be loaded."
+        # =================================================
+        # SKILL SUMMARY
+        # =================================================
+
+        st.markdown("### 📊 Skill Summary")
+
+        col1, col2, col3, col4 = st.columns(4)
+
+        with col1:
+            st.metric("Total Skills", total_required)
+
+        with col2:
+            st.metric("Skills Present", total_matched)
+
+        with col3:
+            st.metric("Skills Missing", total_missing)
+
+        with col4:
+            st.metric("Skill Match", f"{match_percentage}%")
+
+        # =================================================
+        # OVERALL LEARNING PROGRESS
+        # =================================================
+
+        st.markdown("### 📈 Overall Learning Progress")
+        st.progress(int(match_percentage))
+        st.write(f"Current progress: **{match_percentage}%**")
+
+        # =================================================
+        # SKILLS OVERVIEW
+        # =================================================
+
+        st.markdown("### 📊 Skills Overview")
+
+        st.write(f"✅ Skills Present: {total_matched}")
+        st.progress(
+            int((total_matched / total_required) * 100)
+            if total_required else 0
+        )
+
+        st.write(f"⚠️ Skills Missing: {total_missing}")
+
+        missing_percentage = (
+            (total_missing / total_required) * 100
+            if total_required
+            else 0
+        )
+
+        st.progress(int(missing_percentage))
+
+        # =================================================
+        # CURRENT SKILLS
+        # =================================================
+
+        st.markdown("### 🛠️ Current Skills")
+
+        current_skill_names = []
+
+        for skill in user_skills:
+            if isinstance(skill, dict):
+                skill_name = (
+                    skill.get("skill_name")
+                    or skill.get("name")
+                    or skill.get("skill")
                 )
 
+                if skill_name:
+                    current_skill_names.append(skill_name)
 
-# =========================================================
-# RESUME & SKILLS
-# =========================================================
+            elif isinstance(skill, str):
+                current_skill_names.append(skill)
 
+        if current_skill_names:
+            skills_html = "".join(
+                f'<span class="skill-current">{skill}</span>'
+                for skill in current_skill_names
+            )
+
+            st.markdown(
+                skills_html,
+                unsafe_allow_html=True
+            )
+        else:
+            st.info(
+                "No skills found. Upload your resume to detect skills."
+            )
+
+        # =================================================
+        # SKILLS TO LEARN
+        # =================================================
+
+        st.markdown("### 📚 Skills to Learn")
+
+        if missing_skills:
+            missing_html = "".join(
+                f'<span class="skill-missing">{skill}</span>'
+                for skill in missing_skills
+            )
+
+            st.markdown(
+                missing_html,
+                unsafe_allow_html=True
+            )
+        else:
+            st.success("No missing skills for the selected target role.")
+
+        # =================================================
+        # RECOMMENDED LEARNING PATH
+        # =================================================
+
+        st.markdown("### 🧭 Recommended Learning Path")
+
+        if missing_skills:
+            for index, skill in enumerate(
+                missing_skills,
+                start=1
+            ):
+                st.markdown(
+                    f"""
+                    <div class="learning-step">
+                        <strong>{index}. {skill}</strong>
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
+        else:
+            st.success(
+                "Your current skills match the selected target role."
+            )
 elif page == "Resume & Skills":
 
     st.title("📄 Resume Analysis")
